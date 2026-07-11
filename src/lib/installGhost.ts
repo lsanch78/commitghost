@@ -20,6 +20,18 @@ function rcFileFor(shell: SupportedShell): string {
   return path.join(homedir(), file);
 }
 
+export async function isGhostInstalled(
+  shell: SupportedShell,
+): Promise<boolean> {
+  try {
+    const existing = await readFile(rcFileFor(shell), "utf-8");
+    return existing.includes(MARKER_START);
+  } catch (err: any) {
+    if (err.code === "ENOENT") return false;
+    throw err;
+  }
+}
+
 export interface InstallResult {
   status: "installed" | "already-installed";
   rcFile: string;

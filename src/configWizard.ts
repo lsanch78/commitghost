@@ -12,6 +12,12 @@ import {
   setCredential,
   type CredentialKey,
 } from "./lib/credentials.js";
+import {
+  detectShell,
+  installGhost,
+  isGhostInstalled,
+  uninstallGhost,
+} from "./lib/installGhost.js";
 
 const PROVIDER_KEY_ENV: Record<Provider, CredentialKey> = {
   anthropic: "ANTHROPIC_API_KEY",
@@ -70,16 +76,29 @@ export async function runConfigWizard(): Promise<void> {
   });
   if (p.isCancel(candidateCount)) return cancelled();
 
-  const warnLines = await p.text({
+  const shell = detectShell();
+  const ghostAlreadyInstalled = shell ? await isGhostInstalled(shell) : false;
+
+  const wantsGhost = await p.confirm({
     message:
-      "Ghost warning threshold (lines changed before the prompt ghost appears)",
-    initialValue: String(current.warnLines),
-    validate: (v) => {
-      const n = parseInt(v, 10);
-      if (isNaN(n) || n < 1) return "Enter a positive number";
-    },
+      "Add reminder ghost? Appears for diffs > threshold — completely optional and configurable.",
+    initialValue: ghostAlreadyInstalled,
   });
-  if (p.isCancel(warnLines)) return cancelled();
+  if (p.isCancel(wantsGhost)) return cancelled();
+
+  let warnLines: string | symbol = String(current.warnLines);
+  if (wantsGhost) {
+    warnLines = await p.text({
+      message:
+        "Ghost warning threshold (lines changed before the prompt ghost appears)",
+      initialValue: String(current.warnLines),
+      validate: (v) => {
+        const n = parseInt(v, 10);
+        if (isNaN(n) || n < 1) return "Enter a positive number";
+      },
+    });
+    if (p.isCancel(warnLines)) return cancelled();
+  }
 
   const verbose = await p.confirm({
     message:
@@ -111,12 +130,31 @@ export async function runConfigWizard(): Promise<void> {
   const target = await writeConfig(next);
 
   const trimmedKey = (apiKey as string).trim();
+  const messages: string[] = [`Saved config to ${target}`];
   if (trimmedKey) {
     const credPath = await setCredential(keyEnvName, trimmedKey);
-    p.outro(`Saved config to ${target}\nSaved ${keyEnvName} to ${credPath}`);
-  } else {
-    p.outro(`Saved to ${target}`);
+    messages.push(`Saved ${keyEnvName} to ${credPath}`);
   }
+
+  if (shell) {
+    if (wantsGhost) {
+      const result = await installGhost(shell);
+      if (result.status === "installed") {
+        messages.push(`Added the ghost hook to ${result.rcFile}`);
+      }
+    } else {
+      const result = await uninstallGhost(shell);
+      if (result.status === "removed") {
+        messages.push(`Removed the ghost hook from ${result.rcFile}`);
+      }
+    }
+  } else if (wantsGhost) {
+    messages.push(
+      `Could not detect your shell — run "commitghost install-ghost <zsh|bash>" to finish setup.`,
+    );
+  }
+
+  p.outro(messages.join("\n"));
 }
 
 function cancelled() {
