@@ -23,7 +23,7 @@ $ commitghost
 npm install -g commitghost
 ```
 
-This gives you two equivalent commands: `commitghost` and the shorter `commitg`.
+This gives you three equivalent commands: `commitghost`, the shorter `commitg`, and `git commitg` (git resolves any `git commitg` invocation to the `git-commitg` executable on your `PATH`, the same mechanism behind tools like `hub`).
 
 ## Setup
 
@@ -48,6 +48,7 @@ export OPENAI_API_KEY=sk-...
 ```sh
 git add -A
 commitghost                 # generate candidates, pick one, commit
+git commitg                 # same thing, as a git subcommand
 commitghost --dry-run        # preview without committing
 commitghost -p openai        # use OpenAI instead of Anthropic
 commitghost -n 5              # generate 5 candidates instead of 3
@@ -70,14 +71,14 @@ Run `commitghost --config` for an interactive setup wizard, or hand-write a `.co
 }
 ```
 
-| Field | Description |
-|---|---|
-| `provider` | `anthropic` or `openai` |
-| `model` | Override the default model for the chosen provider |
-| `style` | Force a specific commit style; omit to auto-match your repo's recent commit history |
-| `candidateCount` | Number of candidates to generate (1–10) |
-| `warnLines` | Line-change threshold for the shell prompt ghost (see below) |
-| `verbose` | Always show file stats, token usage, cost, and timing (same as passing `-v` every time). Override per-run with `-v` or `--no-verbose`. |
+| Field            | Description                                                                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `provider`       | `anthropic` or `openai`                                                                                                                |
+| `model`          | Override the default model for the chosen provider                                                                                     |
+| `style`          | Force a specific commit style; omit to auto-match your repo's recent commit history                                                    |
+| `candidateCount` | Number of candidates to generate (1–10)                                                                                                |
+| `warnLines`      | Line-change threshold for the shell prompt ghost (see below)                                                                           |
+| `verbose`        | Always show file stats, token usage, cost, and timing (same as passing `-v` every time). Override per-run with `-v` or `--no-verbose`. |
 
 ## The ghost
 
@@ -103,11 +104,11 @@ commitghost uninstall-ghost
 
 ## Environment variables
 
-| Variable | Purpose |
-|---|---|
-| `ANTHROPIC_API_KEY` | Required when using the `anthropic` provider |
-| `OPENAI_API_KEY` | Required when using the `openai` provider |
-| `COMMITGHOST_PROVIDER` | Default provider if not set in config |
+| Variable                 | Purpose                                      |
+| ------------------------ | -------------------------------------------- |
+| `ANTHROPIC_API_KEY`      | Required when using the `anthropic` provider |
+| `OPENAI_API_KEY`         | Required when using the `openai` provider    |
+| `COMMITGHOST_PROVIDER`   | Default provider if not set in config        |
 | `COMMITGHOST_WARN_LINES` | Default ghost threshold if not set in config |
 
 ## License

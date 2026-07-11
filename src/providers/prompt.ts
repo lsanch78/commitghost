@@ -1,6 +1,9 @@
 import type { GenerateOptions } from "./types.js";
 
-export function buildPrompt(options: GenerateOptions): { system: string; user: string } {
+export function buildPrompt(options: GenerateOptions): {
+  system: string;
+  user: string;
+} {
   const { diff, filesChanged, recentSubjects, style, candidateCount } = options;
 
   const styleHint = style

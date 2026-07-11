@@ -12,7 +12,7 @@ export function createOpenAIProvider(): Provider {
       const apiKey = await getCredential("OPENAI_API_KEY");
       if (!apiKey) {
         throw new Error(
-          "No OpenAI API key found. Run `commitghost --config` to set one, or export OPENAI_API_KEY."
+          "No OpenAI API key found. Run `commitghost --config` to set one, or export OPENAI_API_KEY.",
         );
       }
 

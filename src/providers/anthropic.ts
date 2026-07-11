@@ -12,7 +12,7 @@ export function createAnthropicProvider(): Provider {
       const apiKey = await getCredential("ANTHROPIC_API_KEY");
       if (!apiKey) {
         throw new Error(
-          "No Anthropic API key found. Run `commitghost --config` to set one, or export ANTHROPIC_API_KEY."
+          "No Anthropic API key found. Run `commitghost --config` to set one, or export ANTHROPIC_API_KEY.",
         );
       }
 

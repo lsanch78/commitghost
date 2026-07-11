@@ -19,7 +19,10 @@ export async function readCredentials(): Promise<Credentials> {
   }
 }
 
-export async function setCredential(key: CredentialKey, value: string): Promise<string> {
+export async function setCredential(
+  key: CredentialKey,
+  value: string,
+): Promise<string> {
   const current = await readCredentials();
   const next = { ...current, [key]: value };
 
@@ -32,7 +35,9 @@ export async function setCredential(key: CredentialKey, value: string): Promise<
   return CREDENTIALS_PATH;
 }
 
-export async function getCredential(key: CredentialKey): Promise<string | undefined> {
+export async function getCredential(
+  key: CredentialKey,
+): Promise<string | undefined> {
   if (process.env[key]) return process.env[key];
   const stored = await readCredentials();
   return stored[key];

@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "allow": ["Bash(grep -iE \"hook|install|bin|package.json$\")"]
+  }
+}

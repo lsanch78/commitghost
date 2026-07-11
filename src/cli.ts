@@ -11,14 +11,19 @@ import { GHOST } from "./lib/ghost.js";
 import { ZSH_INIT, BASH_INIT } from "./lib/shellInit.js";
 import { runConfigWizard } from "./configWizard.js";
 import { estimateCost, formatCost } from "./lib/pricing.js";
-import { detectShell, installGhost, uninstallGhost, type SupportedShell } from "./lib/installGhost.js";
+import {
+  detectShell,
+  installGhost,
+  uninstallGhost,
+  type SupportedShell,
+} from "./lib/installGhost.js";
 
 const REGENERATE = "__commitghost_regenerate__";
 const EDIT = "__commitghost_edit__";
 const CANCEL = "__commitghost_cancel__";
 
 async function pickMessage(
-  candidates: string[]
+  candidates: string[],
 ): Promise<string | typeof REGENERATE | typeof CANCEL> {
   const choice = await p.select({
     message: "Pick a commit message",
@@ -70,12 +75,15 @@ function shellInit(shell: string) {
   }
 }
 
-function resolveShell(shellArg: string | undefined, commandName: string): SupportedShell {
+function resolveShell(
+  shellArg: string | undefined,
+  commandName: string,
+): SupportedShell {
   const shell = (shellArg as SupportedShell | undefined) ?? detectShell();
 
   if (!shell) {
     console.error(
-      `Could not detect your shell from $SHELL. Run "commitghost ${commandName} zsh" or "commitghost ${commandName} bash" explicitly.`
+      `Could not detect your shell from $SHELL. Run "commitghost ${commandName} zsh" or "commitghost ${commandName} bash" explicitly.`,
     );
     process.exit(1);
   }
@@ -97,7 +105,9 @@ async function runInstallGhost(shellArg?: string) {
   }
 
   console.log(`Added the ghost hook to ${result.rcFile}.`);
-  console.log(`Run "source ${result.rcFile}" or open a new terminal to activate it.`);
+  console.log(
+    `Run "source ${result.rcFile}" or open a new terminal to activate it.`,
+  );
 }
 
 async function runUninstallGhost(shellArg?: string) {
@@ -110,7 +120,9 @@ async function runUninstallGhost(shellArg?: string) {
   }
 
   console.log(`Removed the ghost hook from ${result.rcFile}.`);
-  console.log(`Run "source ${result.rcFile}" or open a new terminal to fully clear it.`);
+  console.log(
+    `Run "source ${result.rcFile}" or open a new terminal to fully clear it.`,
+  );
 }
 
 async function generateAndCommit(opts: any) {
@@ -124,26 +136,30 @@ async function generateAndCommit(opts: any) {
   const config = await loadConfig();
   if (opts.provider) config.provider = opts.provider;
   if (opts.count) config.candidateCount = opts.count;
-  const verbose: boolean = opts.verbose !== undefined ? opts.verbose : config.verbose;
+  const verbose: boolean =
+    opts.verbose !== undefined ? opts.verbose : config.verbose;
 
   const spinner = p.spinner();
 
   try {
     const diffStart = Date.now();
     spinner.start("Reading staged diff");
-    const { diff, filesChanged, fileStats, recentSubjects } = await getStagedDiffContext();
+    const { diff, filesChanged, fileStats, recentSubjects } =
+      await getStagedDiffContext();
     const { diff: safeDiff, truncated } = truncateDiff(diff);
     const diffMs = Date.now() - diffStart;
     spinner.stop(
-      `Read diff across ${filesChanged.length} file(s)${truncated ? " (truncated for length)" : ""}`
+      `Read diff across ${filesChanged.length} file(s)${truncated ? " (truncated for length)" : ""}`,
     );
 
     if (verbose) {
       const lines = fileStats.map(
-        (f) => `  ${f.file}  +${f.insertions} -${f.deletions}`
+        (f) => `  ${f.file}  +${f.insertions} -${f.deletions}`,
       );
       p.log.info(`Files changed:\n${lines.join("\n")}`);
-      p.log.info(`Diff read in ${diffMs}ms${truncated ? " (truncated for size)" : ""}`);
+      p.log.info(
+        `Diff read in ${diffMs}ms${truncated ? " (truncated for size)" : ""}`,
+      );
     }
 
     const provider = getProvider(config.provider);
@@ -173,7 +189,7 @@ async function generateAndCommit(opts: any) {
           `Model: ${model}\n` +
             `Tokens: ${inputTokens} in / ${outputTokens} out\n` +
             `Cost: ${cost !== undefined ? formatCost(cost) : "unknown (no pricing data for this model)"}\n` +
-            `API call: ${apiMs}ms`
+            `API call: ${apiMs}ms`,
         );
       }
 
@@ -222,36 +238,51 @@ program
       const n = parseInt(v, 10);
       if (isNaN(n) || n < MIN_CANDIDATES || n > MAX_CANDIDATES) {
         throw new InvalidArgumentError(
-          `must be a number between ${MIN_CANDIDATES} and ${MAX_CANDIDATES}.`
+          `must be a number between ${MIN_CANDIDATES} and ${MAX_CANDIDATES}.`,
         );
       }
       return n;
-    }
+    },
   )
   .option("--dry-run", "print the chosen message instead of committing", false)
-  .option("--config", "open the interactive config wizard and write .commitghost.json", false)
-  .option("-v, --verbose", "show file stats, token usage, cost estimate, and timing")
+  .option(
+    "--config",
+    "open the interactive config wizard and write .commitghost.json",
+    false,
+  )
+  .option(
+    "-v, --verbose",
+    "show file stats, token usage, cost estimate, and timing",
+  )
   .option("--no-verbose", "force verbose output off, even if enabled in config")
   .action((opts) => generateAndCommit(opts));
 
 program
   .command("ghost-check")
-  .description("Print a ghost if the working tree diff exceeds the configured line threshold (used by the shell prompt hook).")
+  .description(
+    "Print a ghost if the working tree diff exceeds the configured line threshold (used by the shell prompt hook).",
+  )
   .action(() => ghostCheck());
 
 program
   .command("shell-init <shell>")
-  .description("Print shell integration snippet for the diff-size ghost prompt (zsh|bash). Usage: eval \"$(commitghost shell-init zsh)\"")
+  .description(
+    'Print shell integration snippet for the diff-size ghost prompt (zsh|bash). Usage: eval "$(commitghost shell-init zsh)"',
+  )
   .action((shell: string) => shellInit(shell));
 
 program
   .command("install-ghost [shell]")
-  .description("One-step setup: appends the ghost hook to your ~/.zshrc or ~/.bashrc. Auto-detects your shell if not given.")
+  .description(
+    "One-step setup: appends the ghost hook to your ~/.zshrc or ~/.bashrc. Auto-detects your shell if not given.",
+  )
   .action((shell?: string) => runInstallGhost(shell));
 
 program
   .command("uninstall-ghost [shell]")
-  .description("Removes the ghost hook previously added by install-ghost. Auto-detects your shell if not given.")
+  .description(
+    "Removes the ghost hook previously added by install-ghost. Auto-detects your shell if not given.",
+  )
   .action((shell?: string) => runUninstallGhost(shell));
 
 program.addHelpText(
@@ -260,6 +291,7 @@ program.addHelpText(
 Examples:
   $ git add -A
   $ commitghost                     Generate and pick a commit message, then commit
+  $ git commitg                     Same thing, invoked as a git subcommand
   $ commitghost --dry-run           Preview a message without committing
   $ commitghost -p openai           Use OpenAI instead of Anthropic
   $ commitghost -n 5                Generate 5 candidates instead of 3
@@ -303,7 +335,7 @@ Shell prompt ghost:
   install itself twice. Remove it with "commitghost uninstall-ghost".
   Prefer to wire it in by hand instead? See
   "commitghost shell-init <zsh|bash>".
-`
+`,
 );
 
 program.parse(process.argv);

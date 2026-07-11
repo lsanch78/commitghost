@@ -25,7 +25,9 @@ export interface InstallResult {
   rcFile: string;
 }
 
-export async function installGhost(shell: SupportedShell): Promise<InstallResult> {
+export async function installGhost(
+  shell: SupportedShell,
+): Promise<InstallResult> {
   const rcFile = rcFileFor(shell);
   const snippet = shell === "zsh" ? ZSH_INIT : BASH_INIT;
 
@@ -51,7 +53,9 @@ export interface UninstallResult {
   rcFile: string;
 }
 
-export async function uninstallGhost(shell: SupportedShell): Promise<UninstallResult> {
+export async function uninstallGhost(
+  shell: SupportedShell,
+): Promise<UninstallResult> {
   const rcFile = rcFileFor(shell);
 
   let existing: string;
@@ -72,7 +76,9 @@ export async function uninstallGhost(shell: SupportedShell): Promise<UninstallRe
   const before = existing.slice(0, startIdx).replace(/\n+$/, "");
   const after = existing.slice(endIdx + MARKER_END.length).replace(/^\n+/, "");
 
-  const cleaned = [before, after].filter(Boolean).join("\n\n") + (after || before ? "\n" : "");
+  const cleaned =
+    [before, after].filter(Boolean).join("\n\n") +
+    (after || before ? "\n" : "");
 
   await writeFile(rcFile, cleaned, "utf-8");
 

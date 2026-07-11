@@ -1,6 +1,9 @@
 const MAX_DIFF_CHARS = 12000;
 
-export function truncateDiff(diff: string): { diff: string; truncated: boolean } {
+export function truncateDiff(diff: string): {
+  diff: string;
+  truncated: boolean;
+} {
   if (diff.length <= MAX_DIFF_CHARS) {
     return { diff, truncated: false };
   }

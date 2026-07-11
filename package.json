@@ -5,7 +5,8 @@
   "type": "module",
   "bin": {
     "commitghost": "dist/cli.js",
-    "commitg": "dist/cli.js"
+    "commitg": "dist/cli.js",
+    "git-commitg": "dist/cli.js"
   },
   "files": [
     "dist"

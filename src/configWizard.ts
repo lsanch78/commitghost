@@ -7,7 +7,11 @@ import {
   type Config,
   type Provider,
 } from "./lib/config.js";
-import { getCredential, setCredential, type CredentialKey } from "./lib/credentials.js";
+import {
+  getCredential,
+  setCredential,
+  type CredentialKey,
+} from "./lib/credentials.js";
 
 const PROVIDER_KEY_ENV: Record<Provider, CredentialKey> = {
   anthropic: "ANTHROPIC_API_KEY",
@@ -47,7 +51,8 @@ export async function runConfigWizard(): Promise<void> {
   if (p.isCancel(model)) return cancelled();
 
   const style = await p.text({
-    message: "Commit message style (leave blank for auto-detect from repo history)",
+    message:
+      "Commit message style (leave blank for auto-detect from repo history)",
     placeholder: current.style ?? "(auto)",
     initialValue: current.style ?? "",
   });
@@ -66,7 +71,8 @@ export async function runConfigWizard(): Promise<void> {
   if (p.isCancel(candidateCount)) return cancelled();
 
   const warnLines = await p.text({
-    message: "Ghost warning threshold (lines changed before the prompt ghost appears)",
+    message:
+      "Ghost warning threshold (lines changed before the prompt ghost appears)",
     initialValue: String(current.warnLines),
     validate: (v) => {
       const n = parseInt(v, 10);
@@ -76,7 +82,8 @@ export async function runConfigWizard(): Promise<void> {
   if (p.isCancel(warnLines)) return cancelled();
 
   const verbose = await p.confirm({
-    message: "Always show verbose output (file stats, token usage, cost, timing)?",
+    message:
+      "Always show verbose output (file stats, token usage, cost, timing)?",
     initialValue: current.verbose,
   });
   if (p.isCancel(verbose)) return cancelled();
@@ -85,8 +92,14 @@ export async function runConfigWizard(): Promise<void> {
     provider: provider as Provider,
     model: (model as string | undefined)?.trim() || undefined,
     style: (style as string | undefined)?.trim() || undefined,
-    candidateCount: parseInt((candidateCount as string | undefined) ?? String(current.candidateCount), 10),
-    warnLines: parseInt((warnLines as string | undefined) ?? String(current.warnLines), 10),
+    candidateCount: parseInt(
+      (candidateCount as string | undefined) ?? String(current.candidateCount),
+      10,
+    ),
+    warnLines: parseInt(
+      (warnLines as string | undefined) ?? String(current.warnLines),
+      10,
+    ),
     verbose: verbose as boolean,
   };
 

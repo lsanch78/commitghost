@@ -14,7 +14,7 @@ const PRICING: Record<string, ModelPrice> = {
 export function estimateCost(
   model: string,
   inputTokens: number,
-  outputTokens: number
+  outputTokens: number,
 ): number | undefined {
   const price = PRICING[model];
   if (!price) return undefined;
