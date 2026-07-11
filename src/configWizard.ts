@@ -83,10 +83,10 @@ export async function runConfigWizard(): Promise<void> {
 
   const next: Config = {
     provider: provider as Provider,
-    model: (model as string).trim() || undefined,
-    style: (style as string).trim() || undefined,
-    candidateCount: parseInt(candidateCount as string, 10),
-    warnLines: parseInt(warnLines as string, 10),
+    model: (model as string | undefined)?.trim() || undefined,
+    style: (style as string | undefined)?.trim() || undefined,
+    candidateCount: parseInt((candidateCount as string | undefined) ?? String(current.candidateCount), 10),
+    warnLines: parseInt((warnLines as string | undefined) ?? String(current.warnLines), 10),
     verbose: verbose as boolean,
   };
 
