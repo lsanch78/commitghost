@@ -1,6 +1,6 @@
 # commitghost
 
-AI-powered commit message suggestions from your staged diff, right in the terminal.
+AI-powered commit message suggestions from your staged diff, right in the terminal. I made this for myself because I was consistently forgetting to commit often enough and English is hard sometimes.
 
 ```
 $ git add -A
