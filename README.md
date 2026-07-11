@@ -81,21 +81,17 @@ Run `commitghost --config` for an interactive setup wizard, or hand-write a `.co
 
 ## The ghost
 
-commitghost can drop a little 👻 into your shell prompt when your working tree diff grows past a threshold — a nudge to commit before things get out of hand.
+commitghost can print a little 👻 above your prompt when your working tree diff grows past a threshold — a nudge to commit before things get out of hand.
 
-Add to `~/.zshrc`:
-
-```sh
-eval "$(commitghost shell-init zsh)"
-PROMPT='%~ $(commitghost_prompt)%# '
-```
-
-or `~/.bashrc`:
+Set it up in one step:
 
 ```sh
-eval "$(commitghost shell-init bash)"
-PS1='\w $(commitghost_prompt)\$ '
+commitghost install-ghost
 ```
+
+This auto-detects your shell and appends a hook to `~/.zshrc` or `~/.bashrc`. Restart your terminal (or `source` the file) and you're done — no manual editing of `PROMPT`/`PS1` required, and it won't break existing prompt themes since the ghost prints on its own line rather than being spliced into your prompt string. Safe to run more than once; it won't install itself twice.
+
+Prefer to wire it in by hand (e.g. to control exactly where it prints)? Run `commitghost shell-init zsh` (or `bash`) to print the raw snippet and paste it into your rc file yourself.
 
 The ghost appears once your staged + unstaged diff exceeds `warnLines` (default 150), and disappears once you commit.
 

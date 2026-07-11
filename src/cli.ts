@@ -11,6 +11,7 @@ import { GHOST } from "./lib/ghost.js";
 import { ZSH_INIT, BASH_INIT } from "./lib/shellInit.js";
 import { runConfigWizard } from "./configWizard.js";
 import { estimateCost, formatCost } from "./lib/pricing.js";
+import { detectShell, installGhost, type SupportedShell } from "./lib/installGhost.js";
 
 const REGENERATE = "__commitghost_regenerate__";
 const EDIT = "__commitghost_edit__";
@@ -67,6 +68,31 @@ function shellInit(shell: string) {
     console.error(`Unsupported shell: ${shell}. Use "zsh" or "bash".`);
     process.exit(1);
   }
+}
+
+async function runInstallGhost(shellArg?: string) {
+  const shell = (shellArg as SupportedShell | undefined) ?? detectShell();
+
+  if (!shell) {
+    console.error(
+      'Could not detect your shell from $SHELL. Run "commitghost install-ghost zsh" or "commitghost install-ghost bash" explicitly.'
+    );
+    process.exit(1);
+  }
+  if (shell !== "zsh" && shell !== "bash") {
+    console.error(`Unsupported shell: ${shell}. Use "zsh" or "bash".`);
+    process.exit(1);
+  }
+
+  const result = await installGhost(shell);
+
+  if (result.status === "already-installed") {
+    console.log(`Already installed in ${result.rcFile}. Nothing to do.`);
+    return;
+  }
+
+  console.log(`Added the ghost hook to ${result.rcFile}.`);
+  console.log(`Run "source ${result.rcFile}" or open a new terminal to activate it.`);
 }
 
 async function generateAndCommit(opts: any) {
@@ -200,6 +226,11 @@ program
   .description("Print shell integration snippet for the diff-size ghost prompt (zsh|bash). Usage: eval \"$(commitghost shell-init zsh)\"")
   .action((shell: string) => shellInit(shell));
 
+program
+  .command("install-ghost [shell]")
+  .description("One-step setup: appends the ghost hook to your ~/.zshrc or ~/.bashrc. Auto-detects your shell if not given.")
+  .action((shell?: string) => runInstallGhost(shell));
+
 program.addHelpText(
   "after",
   `
@@ -212,8 +243,9 @@ Examples:
   $ commitghost -v                  Show file stats, token usage, cost, and timing
   $ commitghost --no-verbose        Force verbose off, even if enabled in config
   $ commitghost --config            Open the interactive config wizard
+  $ commitghost install-ghost       Set up the ghost warning in your shell (one step)
   $ commitghost ghost-check         Print a ghost if the diff is over threshold
-  $ commitghost shell-init zsh      Print the zsh prompt integration snippet
+  $ commitghost shell-init zsh      Print the raw zsh integration snippet (manual setup)
 
 Config:
   Add a .commitghost.json file in your repo root to set defaults:
@@ -238,11 +270,14 @@ Environment variables:
   COMMITGHOST_WARN_LINES  default ghost-check threshold if not set in config
 
 Shell prompt ghost:
-  Add to ~/.zshrc (or ~/.bashrc):
-    eval "$(commitghost shell-init zsh)"
-    PROMPT='%~ $(commitghost_prompt)%# '
-  A ghost 👻 appears in your prompt once your working tree diff
-  exceeds the warnLines threshold, and disappears once you commit.
+  Run:
+    commitghost install-ghost
+  This appends a hook to your ~/.zshrc or ~/.bashrc automatically
+  (auto-detects your shell). A ghost 👻 prints above your prompt
+  once your working tree diff exceeds the warnLines threshold, and
+  stops once you commit. Safe to run more than once — it won't
+  install itself twice. Prefer to wire it in by hand instead? See
+  "commitghost shell-init <zsh|bash>".
 `
 );
 
