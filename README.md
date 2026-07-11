@@ -51,6 +51,7 @@ commitghost                 # generate candidates, pick one, commit
 commitghost --dry-run        # preview without committing
 commitghost -p openai        # use OpenAI instead of Anthropic
 commitghost -n 5              # generate 5 candidates instead of 3
+commitghost -v                 # show file stats, token usage, cost, and timing
 commitghost --config          # open the interactive config wizard
 ```
 

@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { GenerateOptions, Provider } from "./types.js";
+import type { GenerateOptions, GenerateResult, Provider } from "./types.js";
 import { buildPrompt, parseCandidates } from "./prompt.js";
 import { getCredential } from "../lib/credentials.js";
 
@@ -8,7 +8,7 @@ const DEFAULT_MODEL = "gpt-4o-mini";
 export function createOpenAIProvider(): Provider {
   return {
     name: "openai",
-    async generate(options: GenerateOptions): Promise<string[]> {
+    async generate(options: GenerateOptions): Promise<GenerateResult> {
       const apiKey = await getCredential("OPENAI_API_KEY");
       if (!apiKey) {
         throw new Error(
@@ -18,9 +18,10 @@ export function createOpenAIProvider(): Provider {
 
       const client = new OpenAI({ apiKey });
       const { system, user } = buildPrompt(options);
+      const model = options.model ?? DEFAULT_MODEL;
 
       const response = await client.chat.completions.create({
-        model: options.model ?? DEFAULT_MODEL,
+        model,
         max_tokens: 512,
         messages: [
           { role: "system", content: system },
@@ -29,7 +30,15 @@ export function createOpenAIProvider(): Provider {
       });
 
       const text = response.choices[0]?.message?.content ?? "";
-      return parseCandidates(text, options.candidateCount);
+
+      return {
+        candidates: parseCandidates(text, options.candidateCount),
+        usage: {
+          inputTokens: response.usage?.prompt_tokens ?? 0,
+          outputTokens: response.usage?.completion_tokens ?? 0,
+          model,
+        },
+      };
     },
   };
 }

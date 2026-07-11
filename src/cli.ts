@@ -10,6 +10,7 @@ import { getWarnLinesSync } from "./lib/configSync.js";
 import { GHOST } from "./lib/ghost.js";
 import { ZSH_INIT, BASH_INIT } from "./lib/shellInit.js";
 import { runConfigWizard } from "./configWizard.js";
+import { estimateCost, formatCost } from "./lib/pricing.js";
 
 const REGENERATE = "__commitghost_regenerate__";
 const EDIT = "__commitghost_edit__";
@@ -76,6 +77,7 @@ async function generateAndCommit(opts: any) {
 
   p.intro("commitghost");
 
+  const verbose: boolean = !!opts.verbose;
   const config = await loadConfig();
   if (opts.provider) config.provider = opts.provider;
   if (opts.count) config.candidateCount = opts.count;
@@ -83,12 +85,22 @@ async function generateAndCommit(opts: any) {
   const spinner = p.spinner();
 
   try {
+    const diffStart = Date.now();
     spinner.start("Reading staged diff");
-    const { diff, filesChanged, recentSubjects } = await getStagedDiffContext();
+    const { diff, filesChanged, fileStats, recentSubjects } = await getStagedDiffContext();
     const { diff: safeDiff, truncated } = truncateDiff(diff);
+    const diffMs = Date.now() - diffStart;
     spinner.stop(
       `Read diff across ${filesChanged.length} file(s)${truncated ? " (truncated for length)" : ""}`
     );
+
+    if (verbose) {
+      const lines = fileStats.map(
+        (f) => `  ${f.file}  +${f.insertions} -${f.deletions}`
+      );
+      p.log.info(`Files changed:\n${lines.join("\n")}`);
+      p.log.info(`Diff read in ${diffMs}ms${truncated ? " (truncated for size)" : ""}`);
+    }
 
     const provider = getProvider(config.provider);
 
@@ -97,7 +109,8 @@ async function generateAndCommit(opts: any) {
 
     do {
       spinner.start(`Asking ${provider.name} for commit message candidates`);
-      candidates = await provider.generate({
+      const apiStart = Date.now();
+      const generated = await provider.generate({
         diff: safeDiff,
         filesChanged,
         recentSubjects,
@@ -105,7 +118,20 @@ async function generateAndCommit(opts: any) {
         candidateCount: config.candidateCount,
         model: opts.model ?? config.model,
       });
+      const apiMs = Date.now() - apiStart;
+      candidates = generated.candidates;
       spinner.stop("Got candidates");
+
+      if (verbose) {
+        const { inputTokens, outputTokens, model } = generated.usage;
+        const cost = estimateCost(model, inputTokens, outputTokens);
+        p.log.info(
+          `Model: ${model}\n` +
+            `Tokens: ${inputTokens} in / ${outputTokens} out\n` +
+            `Cost: ${cost !== undefined ? formatCost(cost) : "unknown (no pricing data for this model)"}\n` +
+            `API call: ${apiMs}ms`
+        );
+      }
 
       if (candidates.length === 0) {
         p.cancel("No candidates returned. Try again or check your diff.");
@@ -160,6 +186,7 @@ program
   )
   .option("--dry-run", "print the chosen message instead of committing", false)
   .option("--config", "open the interactive config wizard and write .commitghost.json", false)
+  .option("-v, --verbose", "show file stats, token usage, cost estimate, and timing", false)
   .action((opts) => generateAndCommit(opts));
 
 program
@@ -181,6 +208,7 @@ Examples:
   $ commitghost --dry-run           Preview a message without committing
   $ commitghost -p openai           Use OpenAI instead of Anthropic
   $ commitghost -n 5                Generate 5 candidates instead of 3
+  $ commitghost -v                  Show file stats, token usage, cost, and timing
   $ commitghost --config            Open the interactive config wizard
   $ commitghost ghost-check         Print a ghost if the diff is over threshold
   $ commitghost shell-init zsh      Print the zsh prompt integration snippet
