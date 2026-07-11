@@ -1,4 +1,4 @@
-import { readFile, appendFile } from "node:fs/promises";
+import { readFile, appendFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import { ZSH_INIT, BASH_INIT } from "./shellInit.js";
@@ -44,4 +44,37 @@ export async function installGhost(shell: SupportedShell): Promise<InstallResult
   await appendFile(rcFile, block, "utf-8");
 
   return { status: "installed", rcFile };
+}
+
+export interface UninstallResult {
+  status: "removed" | "not-installed";
+  rcFile: string;
+}
+
+export async function uninstallGhost(shell: SupportedShell): Promise<UninstallResult> {
+  const rcFile = rcFileFor(shell);
+
+  let existing: string;
+  try {
+    existing = await readFile(rcFile, "utf-8");
+  } catch (err: any) {
+    if (err.code === "ENOENT") return { status: "not-installed", rcFile };
+    throw err;
+  }
+
+  const startIdx = existing.indexOf(MARKER_START);
+  const endIdx = existing.indexOf(MARKER_END);
+
+  if (startIdx === -1 || endIdx === -1) {
+    return { status: "not-installed", rcFile };
+  }
+
+  const before = existing.slice(0, startIdx).replace(/\n+$/, "");
+  const after = existing.slice(endIdx + MARKER_END.length).replace(/^\n+/, "");
+
+  const cleaned = [before, after].filter(Boolean).join("\n\n") + (after || before ? "\n" : "");
+
+  await writeFile(rcFile, cleaned, "utf-8");
+
+  return { status: "removed", rcFile };
 }

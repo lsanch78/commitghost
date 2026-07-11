@@ -95,6 +95,12 @@ Prefer to wire it in by hand (e.g. to control exactly where it prints)? Run `com
 
 The ghost appears once your staged + unstaged diff exceeds `warnLines` (default 150), and disappears once you commit.
 
+To remove it:
+
+```sh
+commitghost uninstall-ghost
+```
+
 ## Environment variables
 
 | Variable | Purpose |

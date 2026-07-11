@@ -11,7 +11,7 @@ import { GHOST } from "./lib/ghost.js";
 import { ZSH_INIT, BASH_INIT } from "./lib/shellInit.js";
 import { runConfigWizard } from "./configWizard.js";
 import { estimateCost, formatCost } from "./lib/pricing.js";
-import { detectShell, installGhost, type SupportedShell } from "./lib/installGhost.js";
+import { detectShell, installGhost, uninstallGhost, type SupportedShell } from "./lib/installGhost.js";
 
 const REGENERATE = "__commitghost_regenerate__";
 const EDIT = "__commitghost_edit__";
@@ -70,12 +70,12 @@ function shellInit(shell: string) {
   }
 }
 
-async function runInstallGhost(shellArg?: string) {
+function resolveShell(shellArg: string | undefined, commandName: string): SupportedShell {
   const shell = (shellArg as SupportedShell | undefined) ?? detectShell();
 
   if (!shell) {
     console.error(
-      'Could not detect your shell from $SHELL. Run "commitghost install-ghost zsh" or "commitghost install-ghost bash" explicitly.'
+      `Could not detect your shell from $SHELL. Run "commitghost ${commandName} zsh" or "commitghost ${commandName} bash" explicitly.`
     );
     process.exit(1);
   }
@@ -84,6 +84,11 @@ async function runInstallGhost(shellArg?: string) {
     process.exit(1);
   }
 
+  return shell;
+}
+
+async function runInstallGhost(shellArg?: string) {
+  const shell = resolveShell(shellArg, "install-ghost");
   const result = await installGhost(shell);
 
   if (result.status === "already-installed") {
@@ -93,6 +98,19 @@ async function runInstallGhost(shellArg?: string) {
 
   console.log(`Added the ghost hook to ${result.rcFile}.`);
   console.log(`Run "source ${result.rcFile}" or open a new terminal to activate it.`);
+}
+
+async function runUninstallGhost(shellArg?: string) {
+  const shell = resolveShell(shellArg, "uninstall-ghost");
+  const result = await uninstallGhost(shell);
+
+  if (result.status === "not-installed") {
+    console.log(`No ghost hook found in ${result.rcFile}. Nothing to do.`);
+    return;
+  }
+
+  console.log(`Removed the ghost hook from ${result.rcFile}.`);
+  console.log(`Run "source ${result.rcFile}" or open a new terminal to fully clear it.`);
 }
 
 async function generateAndCommit(opts: any) {
@@ -231,6 +249,11 @@ program
   .description("One-step setup: appends the ghost hook to your ~/.zshrc or ~/.bashrc. Auto-detects your shell if not given.")
   .action((shell?: string) => runInstallGhost(shell));
 
+program
+  .command("uninstall-ghost [shell]")
+  .description("Removes the ghost hook previously added by install-ghost. Auto-detects your shell if not given.")
+  .action((shell?: string) => runUninstallGhost(shell));
+
 program.addHelpText(
   "after",
   `
@@ -244,6 +267,7 @@ Examples:
   $ commitghost --no-verbose        Force verbose off, even if enabled in config
   $ commitghost --config            Open the interactive config wizard
   $ commitghost install-ghost       Set up the ghost warning in your shell (one step)
+  $ commitghost uninstall-ghost     Remove the ghost warning hook
   $ commitghost ghost-check         Print a ghost if the diff is over threshold
   $ commitghost shell-init zsh      Print the raw zsh integration snippet (manual setup)
 
@@ -276,7 +300,8 @@ Shell prompt ghost:
   (auto-detects your shell). A ghost 👻 prints above your prompt
   once your working tree diff exceeds the warnLines threshold, and
   stops once you commit. Safe to run more than once — it won't
-  install itself twice. Prefer to wire it in by hand instead? See
+  install itself twice. Remove it with "commitghost uninstall-ghost".
+  Prefer to wire it in by hand instead? See
   "commitghost shell-init <zsh|bash>".
 `
 );
