@@ -77,10 +77,10 @@ async function generateAndCommit(opts: any) {
 
   p.intro("commitghost");
 
-  const verbose: boolean = !!opts.verbose;
   const config = await loadConfig();
   if (opts.provider) config.provider = opts.provider;
   if (opts.count) config.candidateCount = opts.count;
+  const verbose: boolean = opts.verbose !== undefined ? opts.verbose : config.verbose;
 
   const spinner = p.spinner();
 
@@ -186,7 +186,8 @@ program
   )
   .option("--dry-run", "print the chosen message instead of committing", false)
   .option("--config", "open the interactive config wizard and write .commitghost.json", false)
-  .option("-v, --verbose", "show file stats, token usage, cost estimate, and timing", false)
+  .option("-v, --verbose", "show file stats, token usage, cost estimate, and timing")
+  .option("--no-verbose", "force verbose output off, even if enabled in config")
   .action((opts) => generateAndCommit(opts));
 
 program
@@ -209,6 +210,7 @@ Examples:
   $ commitghost -p openai           Use OpenAI instead of Anthropic
   $ commitghost -n 5                Generate 5 candidates instead of 3
   $ commitghost -v                  Show file stats, token usage, cost, and timing
+  $ commitghost --no-verbose        Force verbose off, even if enabled in config
   $ commitghost --config            Open the interactive config wizard
   $ commitghost ghost-check         Print a ghost if the diff is over threshold
   $ commitghost shell-init zsh      Print the zsh prompt integration snippet
@@ -220,7 +222,8 @@ Config:
       "model": "claude-haiku-4-5-20251001",
       "style": "conventional commits, no body",
       "candidateCount": 3,
-      "warnLines": 150
+      "warnLines": 150,
+      "verbose": false
     }
 
 API keys:

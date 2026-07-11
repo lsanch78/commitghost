@@ -75,12 +75,19 @@ export async function runConfigWizard(): Promise<void> {
   });
   if (p.isCancel(warnLines)) return cancelled();
 
+  const verbose = await p.confirm({
+    message: "Always show verbose output (file stats, token usage, cost, timing)?",
+    initialValue: current.verbose,
+  });
+  if (p.isCancel(verbose)) return cancelled();
+
   const next: Config = {
     provider: provider as Provider,
     model: (model as string).trim() || undefined,
     style: (style as string).trim() || undefined,
     candidateCount: parseInt(candidateCount as string, 10),
     warnLines: parseInt(warnLines as string, 10),
+    verbose: verbose as boolean,
   };
 
   const confirmed = await p.confirm({

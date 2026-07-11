@@ -10,6 +10,7 @@ export interface Config {
   style?: string;
   candidateCount: number;
   warnLines: number;
+  verbose: boolean;
 }
 
 export const MIN_CANDIDATES = 1;
@@ -23,6 +24,7 @@ const DEFAULTS: Config = {
   provider: "anthropic",
   candidateCount: 3,
   warnLines: 150,
+  verbose: false,
 };
 
 const CONFIG_FILENAMES = [".commitghost.json", ".commitghostrc.json"];

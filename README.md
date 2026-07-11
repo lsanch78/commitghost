@@ -65,7 +65,8 @@ Run `commitghost --config` for an interactive setup wizard, or hand-write a `.co
   "model": "claude-haiku-4-5-20251001",
   "style": "conventional commits, no body",
   "candidateCount": 3,
-  "warnLines": 150
+  "warnLines": 150,
+  "verbose": false
 }
 ```
 
@@ -76,6 +77,7 @@ Run `commitghost --config` for an interactive setup wizard, or hand-write a `.co
 | `style` | Force a specific commit style; omit to auto-match your repo's recent commit history |
 | `candidateCount` | Number of candidates to generate (1–10) |
 | `warnLines` | Line-change threshold for the shell prompt ghost (see below) |
+| `verbose` | Always show file stats, token usage, cost, and timing (same as passing `-v` every time). Override per-run with `-v` or `--no-verbose`. |
 
 ## The ghost
 
