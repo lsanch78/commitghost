@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { GenerateOptions, Provider } from "./types.js";
 import { buildPrompt, parseCandidates } from "./prompt.js";
 
-const DEFAULT_MODEL = "claude-sonnet-5";
+const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 
 export function createAnthropicProvider(): Provider {
   return {
