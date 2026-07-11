@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { GenerateOptions, Provider } from "./types.js";
 import { buildPrompt, parseCandidates } from "./prompt.js";
+import { getCredential } from "../lib/credentials.js";
 
 const DEFAULT_MODEL = "gpt-4o-mini";
 
@@ -8,10 +9,10 @@ export function createOpenAIProvider(): Provider {
   return {
     name: "openai",
     async generate(options: GenerateOptions): Promise<string[]> {
-      const apiKey = process.env.OPENAI_API_KEY;
+      const apiKey = await getCredential("OPENAI_API_KEY");
       if (!apiKey) {
         throw new Error(
-          "OPENAI_API_KEY is not set. Export it or add it to your shell profile."
+          "No OpenAI API key found. Run `commitghost --config` to set one, or export OPENAI_API_KEY."
         );
       }
 

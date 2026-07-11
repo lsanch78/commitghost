@@ -195,9 +195,14 @@ Config:
       "warnLines": 150
     }
 
+API keys:
+  Run "commitghost --config" to enter your API key interactively —
+  it's saved to ~/.commitghost/credentials (chmod 600) and reused
+  automatically. Environment variables below take priority if set.
+
 Environment variables:
-  ANTHROPIC_API_KEY       required when using the anthropic provider
-  OPENAI_API_KEY          required when using the openai provider
+  ANTHROPIC_API_KEY       overrides the stored key for the anthropic provider
+  OPENAI_API_KEY          overrides the stored key for the openai provider
   COMMITGHOST_PROVIDER    default provider if not set in config
   COMMITGHOST_WARN_LINES  default ghost-check threshold if not set in config
 

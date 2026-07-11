@@ -27,15 +27,21 @@ This gives you two equivalent commands: `commitghost` and the shorter `commitg`.
 
 ## Setup
 
-Export an API key for whichever provider you want to use:
+Run the config wizard and paste in your API key when prompted:
+
+```sh
+commitghost --config
+```
+
+The key is saved to `~/.commitghost/credentials` (created with `chmod 600`, readable only by you) and picked up automatically on future runs — no shell profile editing required.
+
+Prefer an environment variable instead? That still works and takes priority over the stored key:
 
 ```sh
 export ANTHROPIC_API_KEY=sk-ant-...
 # or
 export OPENAI_API_KEY=sk-...
 ```
-
-Add that line to `~/.zshrc` (or `~/.bashrc`) to persist it across sessions.
 
 ## Usage
 

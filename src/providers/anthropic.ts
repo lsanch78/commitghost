@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { GenerateOptions, Provider } from "./types.js";
 import { buildPrompt, parseCandidates } from "./prompt.js";
+import { getCredential } from "../lib/credentials.js";
 
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 
@@ -8,10 +9,10 @@ export function createAnthropicProvider(): Provider {
   return {
     name: "anthropic",
     async generate(options: GenerateOptions): Promise<string[]> {
-      const apiKey = process.env.ANTHROPIC_API_KEY;
+      const apiKey = await getCredential("ANTHROPIC_API_KEY");
       if (!apiKey) {
         throw new Error(
-          "ANTHROPIC_API_KEY is not set. Export it or add it to your shell profile."
+          "No Anthropic API key found. Run `commitghost --config` to set one, or export ANTHROPIC_API_KEY."
         );
       }
 

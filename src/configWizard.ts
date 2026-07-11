@@ -7,6 +7,12 @@ import {
   type Config,
   type Provider,
 } from "./lib/config.js";
+import { getCredential, setCredential, type CredentialKey } from "./lib/credentials.js";
+
+const PROVIDER_KEY_ENV: Record<Provider, CredentialKey> = {
+  anthropic: "ANTHROPIC_API_KEY",
+  openai: "OPENAI_API_KEY",
+};
 
 export async function runConfigWizard(): Promise<void> {
   p.intro("commitghost config");
@@ -22,6 +28,16 @@ export async function runConfigWizard(): Promise<void> {
     initialValue: current.provider,
   });
   if (p.isCancel(provider)) return cancelled();
+
+  const keyEnvName = PROVIDER_KEY_ENV[provider as Provider];
+  const existingKey = await getCredential(keyEnvName);
+
+  const apiKey = await p.password({
+    message: existingKey
+      ? `${keyEnvName} (already set — leave blank to keep it)`
+      : `${keyEnvName} (leave blank to skip and set it later)`,
+  });
+  if (p.isCancel(apiKey)) return cancelled();
 
   const model = await p.text({
     message: "Model (leave blank for provider default)",
@@ -73,7 +89,14 @@ export async function runConfigWizard(): Promise<void> {
   if (p.isCancel(confirmed) || !confirmed) return cancelled();
 
   const target = await writeConfig(next);
-  p.outro(`Saved to ${target}`);
+
+  const trimmedKey = (apiKey as string).trim();
+  if (trimmedKey) {
+    const credPath = await setCredential(keyEnvName, trimmedKey);
+    p.outro(`Saved config to ${target}\nSaved ${keyEnvName} to ${credPath}`);
+  } else {
+    p.outro(`Saved to ${target}`);
+  }
 }
 
 function cancelled() {
