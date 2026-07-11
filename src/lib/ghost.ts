@@ -1,1 +1,1 @@
-export const GHOST = "(o_o)";
+export const GHOST = "👻";

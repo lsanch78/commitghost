@@ -13,7 +13,9 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd _commitghost_precmd
 
 commitghost_prompt() {
-  echo -n "$_commitghost_last"
+  if [ -n "$_commitghost_last" ]; then
+    echo -n "%{$'\\e[36m'%}$_commitghost_last%{$'\\e[0m'%}"
+  fi
 }
 
 # Add commitghost_prompt to your PROMPT, e.g.:
@@ -34,7 +36,9 @@ _commitghost_precmd() {
 PROMPT_COMMAND="_commitghost_precmd\${PROMPT_COMMAND:+; \$PROMPT_COMMAND}"
 
 commitghost_prompt() {
-  echo -n "$_commitghost_last"
+  if [ -n "$_commitghost_last" ]; then
+    echo -n "\\[\\e[36m\\]$_commitghost_last\\[\\e[0m\\]"
+  fi
 }
 
 # Add commitghost_prompt to your PS1, e.g.:

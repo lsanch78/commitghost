@@ -241,7 +241,7 @@ Shell prompt ghost:
   Add to ~/.zshrc (or ~/.bashrc):
     eval "$(commitghost shell-init zsh)"
     PROMPT='%~ $(commitghost_prompt)%# '
-  A ghost (o_o) appears in your prompt once your working tree diff
+  A ghost 👻 appears in your prompt once your working tree diff
   exceeds the warnLines threshold, and disappears once you commit.
 `
 );

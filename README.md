@@ -81,7 +81,7 @@ Run `commitghost --config` for an interactive setup wizard, or hand-write a `.co
 
 ## The ghost
 
-commitghost can drop a little `(o_o)` into your shell prompt when your working tree diff grows past a threshold — a nudge to commit before things get out of hand.
+commitghost can drop a little 👻 into your shell prompt when your working tree diff grows past a threshold — a nudge to commit before things get out of hand.
 
 Add to `~/.zshrc`:
 

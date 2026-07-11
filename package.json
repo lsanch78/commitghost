@@ -1,6 +1,6 @@
 {
   "name": "commitghost",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "AI-powered commit message suggestions from your staged diff, right in the terminal.",
   "type": "module",
   "bin": {
