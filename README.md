@@ -51,9 +51,26 @@ commitghost                 # generate candidates, pick one, commit
 git commitg                 # same thing, as a git subcommand
 commitghost --dry-run        # preview without committing
 commitghost -p openai        # use OpenAI instead of Anthropic
+commitghost -p ollama        # use a local Ollama model instead
 commitghost -n 5              # generate 5 candidates instead of 3
 commitghost -v                 # show file stats, token usage, cost, and timing
 commitghost --config          # open the interactive config wizard
+```
+
+### Using Ollama
+
+No API key required — commitghost talks to a local [Ollama](https://ollama.com) server:
+
+```sh
+ollama serve                      # if not already running
+ollama pull llama3.1              # or any other model you want to use
+commitghost -p ollama
+```
+
+By default it connects to `http://localhost:11434`. Point it elsewhere with `OLLAMA_HOST`:
+
+```sh
+export OLLAMA_HOST=http://192.168.1.50:11434
 ```
 
 ## Config
@@ -73,7 +90,7 @@ Run `commitghost --config` for an interactive setup wizard, or hand-write a `.co
 
 | Field            | Description                                                                                                                            |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `provider`       | `anthropic` or `openai`                                                                                                                |
+| `provider`       | `anthropic`, `openai`, or `ollama`                                                                                                     |
 | `model`          | Override the default model for the chosen provider                                                                                     |
 | `style`          | Force a specific commit style; omit to auto-match your repo's recent commit history                                                    |
 | `candidateCount` | Number of candidates to generate (1–10)                                                                                                |
@@ -104,12 +121,13 @@ commitghost uninstall-ghost
 
 ## Environment variables
 
-| Variable                 | Purpose                                      |
-| ------------------------ | -------------------------------------------- |
-| `ANTHROPIC_API_KEY`      | Required when using the `anthropic` provider |
-| `OPENAI_API_KEY`         | Required when using the `openai` provider    |
-| `COMMITGHOST_PROVIDER`   | Default provider if not set in config        |
-| `COMMITGHOST_WARN_LINES` | Default ghost threshold if not set in config |
+| Variable                 | Purpose                                              |
+| ------------------------ | ---------------------------------------------------- |
+| `ANTHROPIC_API_KEY`      | Required when using the `anthropic` provider         |
+| `OPENAI_API_KEY`         | Required when using the `openai` provider            |
+| `OLLAMA_HOST`            | Ollama server URL (default `http://localhost:11434`) |
+| `COMMITGHOST_PROVIDER`   | Default provider if not set in config                |
+| `COMMITGHOST_WARN_LINES` | Default ghost threshold if not set in config         |
 
 ## License
 

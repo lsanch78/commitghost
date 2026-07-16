@@ -1,5 +1,8 @@
 {
   "permissions": {
-    "allow": ["Bash(grep -iE \"hook|install|bin|package.json$\")"]
+    "allow": [
+      "Bash(grep -iE \"hook|install|bin|package.json$\")",
+      "Bash(npx tsc *)"
+    ]
   }
 }

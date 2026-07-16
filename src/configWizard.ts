@@ -19,7 +19,7 @@ import {
   uninstallGhost,
 } from "./lib/installGhost.js";
 
-const PROVIDER_KEY_ENV: Record<Provider, CredentialKey> = {
+const PROVIDER_KEY_ENV: Partial<Record<Provider, CredentialKey>> = {
   anthropic: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
 };
@@ -32,6 +32,7 @@ export async function runConfigWizard(): Promise<void> {
   const provider = await p.select({
     message: "Provider?",
     options: [
+      { value: "ollama", label: "ollama (local, no API key)" },
       { value: "anthropic", label: "anthropic" },
       { value: "openai", label: "openai" },
     ],
@@ -40,13 +41,15 @@ export async function runConfigWizard(): Promise<void> {
   if (p.isCancel(provider)) return cancelled();
 
   const keyEnvName = PROVIDER_KEY_ENV[provider as Provider];
-  const existingKey = await getCredential(keyEnvName);
+  const existingKey = keyEnvName ? await getCredential(keyEnvName) : undefined;
 
-  const apiKey = await p.password({
-    message: existingKey
-      ? `${keyEnvName} (already set — leave blank to keep it)`
-      : `${keyEnvName} (leave blank to skip and set it later)`,
-  });
+  const apiKey = keyEnvName
+    ? await p.password({
+        message: existingKey
+          ? `${keyEnvName} (already set — leave blank to keep it)`
+          : `${keyEnvName} (leave blank to skip and set it later)`,
+      })
+    : "";
   if (p.isCancel(apiKey)) return cancelled();
 
   const model = await p.text({
@@ -131,7 +134,7 @@ export async function runConfigWizard(): Promise<void> {
 
   const trimmedKey = (apiKey as string).trim();
   const messages: string[] = [`Saved config to ${target}`];
-  if (trimmedKey) {
+  if (trimmedKey && keyEnvName) {
     const credPath = await setCredential(keyEnvName, trimmedKey);
     messages.push(`Saved ${keyEnvName} to ${credPath}`);
   }
