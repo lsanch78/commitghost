@@ -10,7 +10,12 @@ import { getWarnLinesSync } from "./lib/configSync.js";
 import { GHOST } from "./lib/ghost.js";
 import { ZSH_INIT, BASH_INIT } from "./lib/shellInit.js";
 import { runConfigWizard } from "./configWizard.js";
-import { estimateCost, formatCost } from "./lib/pricing.js";
+import {
+  estimateCost,
+  formatCost,
+  estimateEnergyKWh,
+  formatEnergy,
+} from "./lib/pricing.js";
 import {
   detectShell,
   installGhost,
@@ -184,11 +189,18 @@ async function generateAndCommit(opts: any) {
 
       if (verbose) {
         const { inputTokens, outputTokens, model } = generated.usage;
-        const cost = estimateCost(model, inputTokens, outputTokens);
+        let costLine: string;
+        if (config.provider === "ollama") {
+          const energy = estimateEnergyKWh(inputTokens, outputTokens);
+          costLine = `Energy: ~${formatEnergy(energy)} (rough estimate, local inference)`;
+        } else {
+          const cost = estimateCost(model, inputTokens, outputTokens);
+          costLine = `Cost: ${cost !== undefined ? formatCost(cost) : "unknown (no pricing data for this model)"}`;
+        }
         p.log.info(
           `Model: ${model}\n` +
             `Tokens: ${inputTokens} in / ${outputTokens} out\n` +
-            `Cost: ${cost !== undefined ? formatCost(cost) : "unknown (no pricing data for this model)"}\n` +
+            `${costLine}\n` +
             `API call: ${apiMs}ms`,
         );
       }
