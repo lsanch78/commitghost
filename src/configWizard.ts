@@ -18,6 +18,7 @@ import {
   isGhostInstalled,
   uninstallGhost,
 } from "./lib/installGhost.js";
+import { listOllamaModels } from "./providers/ollama.js";
 
 const PROVIDER_KEY_ENV: Partial<Record<Provider, CredentialKey>> = {
   anthropic: "ANTHROPIC_API_KEY",
@@ -52,12 +53,52 @@ export async function runConfigWizard(): Promise<void> {
     : "";
   if (p.isCancel(apiKey)) return cancelled();
 
-  const model = await p.text({
-    message: "Model (leave blank for provider default)",
-    placeholder: current.model ?? "(provider default)",
-    initialValue: current.model ?? "",
-  });
-  if (p.isCancel(model)) return cancelled();
+  let model: string | symbol = current.model ?? "";
+  if (provider === "ollama") {
+    const spinner = p.spinner();
+    spinner.start("Checking for local Ollama models");
+    let installedModels: string[] = [];
+    try {
+      installedModels = await listOllamaModels();
+      spinner.stop(
+        installedModels.length
+          ? `Found ${installedModels.length} local model(s)`
+          : "No local models found",
+      );
+    } catch {
+      spinner.stop("Could not reach Ollama — is it running?");
+    }
+
+    if (installedModels.length > 0) {
+      model = await p.select({
+        message: "Model?",
+        options: [
+          ...installedModels.map((m) => ({ value: m, label: m })),
+          { value: "", label: "Other (type a model name)" },
+        ],
+        initialValue: installedModels.includes(current.model ?? "")
+          ? current.model
+          : installedModels[0],
+      });
+      if (p.isCancel(model)) return cancelled();
+    }
+
+    if (model === "") {
+      model = await p.text({
+        message: "Model name (e.g. llama3.1)",
+        placeholder: current.model ?? "llama3.1",
+        initialValue: current.model ?? "",
+      });
+      if (p.isCancel(model)) return cancelled();
+    }
+  } else {
+    model = await p.text({
+      message: "Model (leave blank for provider default)",
+      placeholder: current.model ?? "(provider default)",
+      initialValue: current.model ?? "",
+    });
+    if (p.isCancel(model)) return cancelled();
+  }
 
   const style = await p.text({
     message:
